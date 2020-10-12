@@ -1,10 +1,23 @@
-import tweepy
+import pandas as pd
+from tabulate import tabulate
+import tweepy as tw
 
 with open('twitter_key.txt', 'r') as fp:
-    consumer_key, consumer_secret = fp.read().split(",")
+    consumer_key, consumer_secret, access_token, access_token_secret = fp.read().split(",")
 
-auth = tweepy.AppAuthHandler(consumer_key, consumer_secret)
-api = tweepy.API(auth)
+auth = tw.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_token, access_token_secret)
+api = tw.API(auth, wait_on_rate_limit=True)
 
-for tweet in tweepy.Cursor(api.search, q='israel lockdown').items(10):
-    print(tweet.text)
+# tweets_cursor = tw.Cursor(
+#     api.search,
+#     lang="en",
+#     q='israel lockdown',
+#     since="2020-09-18").items(100)
+# for tweet in tweets:
+#     print(tweet.text)
+# tweets = [tweet.text for tweet in tweets_cursor]
+tweets = [tweet.text for tweet in api.home_timeline()]
+
+tweet_text = pd.DataFrame(data=tweets, columns=["text"])
+print("Tweet text table :\n" + tweet_text.to_markdown())
